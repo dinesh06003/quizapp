@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class QuestionService {
@@ -41,15 +41,62 @@ public class QuestionService {
             else{
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
             }
-        }
+    }
 
     public ResponseEntity<String> addQuestion(Question question) {
-        Question savedQuestion = questionRepo.save(question);
-        if(savedQuestion.getId() != 0){
-            return new ResponseEntity<>("success", HttpStatus.CREATED);
+        try {
+            Question savedQuestion = questionRepo.save(question);
+            if(savedQuestion.getId() != null){
+                return new ResponseEntity<>("success", HttpStatus.CREATED);
 
-        }else {
-            return new ResponseEntity<>("not saved", HttpStatus.BAD_REQUEST);
+            }else {
+                return new ResponseEntity<>("not saved", HttpStatus.BAD_REQUEST);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>("error occurred while adding question: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+    }
+
+    public ResponseEntity<String> deleteQuestion(int id) {
+        try {
+            if(questionRepo.existsById(id)){
+                questionRepo.deleteById(id);
+                return new ResponseEntity<>("Question deleted successfully: " +id, HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>("Question not found", HttpStatus.NOT_FOUND);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>("Error occurred while deleting question: "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<String> updateQuestion(int id, Question updatedQuestion) {
+        try {
+            Optional<Question> existingQuestionOpt = questionRepo.findById(id);
+            if(existingQuestionOpt.isPresent()){
+                Question existingQuestion = getQuestion(updatedQuestion, existingQuestionOpt);
+
+                questionRepo.save(existingQuestion);
+                return new ResponseEntity<>("Question updated successfully", HttpStatus.ACCEPTED);
+            }else {
+                return new ResponseEntity<>("Question not found", HttpStatus.NOT_FOUND);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>("Error occured while updating question: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private static Question getQuestion(Question updatedQuestion, Optional<Question> existingQuestionOpt) {
+        Question existingQuestion = existingQuestionOpt.get();
+        existingQuestion.setQuestionTitle(updatedQuestion.getQuestionTitle());
+        existingQuestion.setCategory(updatedQuestion.getCategory());
+        existingQuestion.setDifficultyLevel(updatedQuestion.getDifficultyLevel());
+        existingQuestion.setRightAnswer(updatedQuestion.getRightAnswer());
+        existingQuestion.setOption1(updatedQuestion.getOption1());
+        existingQuestion.setOption2(updatedQuestion.getOption2());
+        existingQuestion.setOption3(updatedQuestion.getOption3());
+        existingQuestion.setOption4(updatedQuestion.getOption4());
+        return existingQuestion;
     }
 }
