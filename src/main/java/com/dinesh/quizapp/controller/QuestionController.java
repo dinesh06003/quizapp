@@ -12,13 +12,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/question")
+@CrossOrigin
 public class QuestionController {
 
 
     @Autowired
     private QuestionService questionService;
 
-
+    @GetMapping("/all-questions")
+    public ResponseEntity<List<Question>> getAllQuestion(){
+        return questionService.getAllQuestions();
+    }
 
     @GetMapping("category/{category}")
     public ResponseEntity<List<Question>> getQuestionsByCategory(@PathVariable String category){

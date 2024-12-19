@@ -22,4 +22,8 @@ public class UserService {
          return "successfully registered user details in the database with user " + result;
     }
 
+    public String getUserRole(String username) {
+        User user = userRepo.findByUsername(username);
+        return user.getRole();
+    }
 }

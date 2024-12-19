@@ -39,11 +39,11 @@ public class JwtService {
         }
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
 
 
         Map<String, Object> claims = new HashMap<>();
-
+        claims.put("role", role);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
@@ -62,6 +62,10 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public String extractUserRole(String token){
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         final Claims claims = extractClaims(token);
         return claimResolver.apply(claims);
@@ -77,8 +81,9 @@ public class JwtService {
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName = extractUserName(token);
+        final String role = extractUserRole(token);
 
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token) && role.equals("ADMIN"));
     }
 
     private boolean isTokenExpired(String token) {

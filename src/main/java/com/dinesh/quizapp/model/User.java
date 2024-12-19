@@ -37,4 +37,6 @@ public class User {
     @Pattern(regexp = "ADMIN|USER", message = "Role must be either ADMIN or USER")
     @Column(nullable = false)
     private String role = "USER";
+
+//    private long mobileNo;
 }
